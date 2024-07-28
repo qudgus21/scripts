@@ -96,7 +96,7 @@ API_URL="https://api.github.com"
 REPOS_URL="$API_URL/user/repos"
 
 # 변경할 레포지토리 이름 입력 받기
-read -p "공개할 레포지토리 이름을 입력하세요 (예: my-repo): " REPO_NAME
+read -p "비공개할 레포지토리 이름을 입력하세요 (예: my-repo): " REPO_NAME
 
 # 레포지토리의 전체 이름을 만들기
 REPO_FULL_NAME="$GITHUB_USER/$REPO_NAME"
@@ -113,14 +113,14 @@ fi
 # 현재 레포지토리의 공개 상태 확인
 IS_PRIVATE=$(echo "$REPO_EXISTS" | jq -r '.private')
 
-# 이미 공개 레포지토리인 경우
-if [[ "$IS_PRIVATE" == "false" ]]; then
-    echo "레포지토리 '$REPO_NAME'은(는) 이미 공개되어 있습니다."
+# 이미 비공개 레포지토리인 경우
+if [[ "$IS_PRIVATE" == "true" ]]; then
+    echo "레포지토리 '$REPO_NAME'은(는) 이미 비공개되어 있습니다."
     exit 0
 fi
 
 # 사용자에게 확인 받기
-read -p "레포지토리 '$REPO_NAME'을(를) 공개하시겠습니까? (y/n): " CONFIRM
+read -p "레포지토리 '$REPO_NAME'을(를) 비공개하시겠습니까? (y/n): " CONFIRM
 if [[ "$CONFIRM" != "y" && "$CONFIRM" != "n" ]]; then
     echo "잘못된 입력입니다. 'y' 또는 'n'을 입력해주세요."
     exit 1
@@ -131,15 +131,15 @@ if [[ "$CONFIRM" == "n" ]]; then
     exit 0
 fi
 
-# 레포지토리를 공개로 변경
+# 레포지토리를 비공개로 변경
 UPDATE_RESPONSE=$(curl -s -X PATCH -u "$GITHUB_USER:$GITHUB_TOKEN" \
-    -d '{"private": false}' \
+    -d '{"private": true}' \
     "$API_URL/repos/$REPO_FULL_NAME")
 
 # 변경 확인
-if [[ $(echo "$UPDATE_RESPONSE" | jq -r '.private') == "false" ]]; then
-    echo "레포지토리 '$REPO_NAME'이(가) 성공적으로 공개로 변경되었습니다."
+if [[ $(echo "$UPDATE_RESPONSE" | jq -r '.private') == "true" ]]; then
+    echo "레포지토리 '$REPO_NAME'이(가) 성공적으로 비공개로 변경되었습니다."
 else
-    echo "레포지토리 '$REPO_NAME'을(를) 공개로 변경하는 데 실패했습니다."
+    echo "레포지토리 '$REPO_NAME'을(를) 비공개로 변경하는 데 실패했습니다."
     echo "$UPDATE_RESPONSE"
 fi
